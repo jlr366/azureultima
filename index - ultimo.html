@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Evaluación en Línea</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #eaf2ff, #f8fbff);
+      color: #1f2937;
+    }
+
+    .contenedor {
+      max-width: 900px;
+      margin: 40px auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+    }
+
+    h1 {
+      text-align: center;
+      color: #0f172a;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .subtitulo {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 30px;
+    }
+
+    .bloque {
+      margin-bottom: 25px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    .info-superior {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 15px 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .temporizador {
+      font-size: 18px;
+      font-weight: bold;
+      color: #dc2626;
+    }
+
+    .progreso {
+      font-size: 16px;
+      font-weight: bold;
+      color: #1d4ed8;
+    }
+
+    .pregunta {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+    }
+
+    .pregunta h3 {
+      margin-top: 0;
+      color: #0f172a;
+    }
+
+    .imagen-pregunta {
+      width: 100%;
+      max-width: 420px;
+      display: block;
+      margin: 15px auto;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .opcion {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .opcion:hover {
+      background: #eef4ff;
+    }
+
+    .botones {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 14px 22px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .resultado {
+      text-align: center;
+      margin-top: 30px;
+      padding: 25px;
+      border-radius: 16px;
+      display: none;
+    }
+
+    .resultado.aprobado {
+      background: #ecfdf5;
+      border: 2px solid #10b981;
+    }
+
+    .resultado.reprobado {
+      background: #fef2f2;
+      border: 2px solid #ef4444;
+    }
+
+    .resultado img {
+      width: 100%;
+      max-width: 440px;
+      margin-top: 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .admin-panel {
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 14px;
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      display: none;
+    }
+
+    .admin-panel h2 {
+      margin-top: 0;
+      color: #9a3412;
+    }
+
+    .detalle-item {
+      margin-bottom: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 1px solid #fed7aa;
+    }
+
+    .correcta {
+      color: #15803d;
+      font-weight: bold;
+    }
+
+    .incorrecta {
+      color: #b91c1c;
+      font-weight: bold;
+    }
+
+    .pantalla-inicial {
+      text-align: center;
+    }
+
+    .oculto {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .contenedor {
+        margin: 15px;
+        padding: 20px;
+      }
+
+      .info-superior {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .resultado img {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <h1 id="titulo">Evaluación en Línea</h1>
+    <p class="subtitulo">Complete la evaluación dentro del tiempo establecido.</p>
+
+    <div id="pantallaInicial" class="pantalla-inicial">
+      <div class="bloque">
+        <label for="nombre">Nombre del estudiante</label>
+        <input type="text" id="nombre" placeholder="Escriba su nombre completo" />
+      </div>
+
+      <div class="botones">
+        <button onclick="iniciarEvaluacion()">Iniciar evaluación</button>
+      </div>
+    </div>
+
+    <div id="pantallaEvaluacion" class="oculto">
+      <div class="info-superior">
+        <div class="temporizador">Tiempo restante: <span id="tiempo">20:00</span></div>
+        <div class="progreso">Respondidas: <span id="respondidas">0</span> / <span id="totalPreguntas">0</span></div>
+      </div>
+
+      <form id="formularioPreguntas"></form>
+
+      <div class="botones">
+        <button type="button" onclick="finalizarEvaluacion()">Finalizar evaluación</button>
+      </div>
+    </div>
+
+    <div id="resultado" class="resultado">
+      <h2 id="mensajeFinal"></h2>
+      <p><strong>Estudiante:</strong> <span id="nombreMostrado"></span></p>
+      <p><strong>Nota:</strong> <span id="notaFinal"></span></p>
+      <img id="imagenResultado" src="" alt="Resultado" />
+    </div>
+
+    <div id="adminPanel" class="admin-panel">
+      <h2>Panel de Administrador</h2>
+      <div id="detalleRespuestas"></div>
+    </div>
+  </div>
+
+  <audio id="audioEvaluacion" loop>
+    <source src="audios/evaluacion.mp3" type="audio/mpeg">
+  </audio>
+
+  <audio id="audioAprobado">
+    <source src="audios/aprobado.mp3" type="audio/mpeg">
+  </audio>
+
+  <audio id="audioReprobado">
+    <source src="audios/reprobado.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+          const preguntas = [
+  {
+    "pregunta": "¿Se pueden implementar máquinas virtuales en múltiples regiones de Azure para garantizar continuidad de negocio?",
+    "imagen": "",
+    "opciones": ["Sí", "No"],
+    "correcta": 0
+  },
+  {
+    "pregunta": "Una empresa desea migrar su infraestructura de nube privada a una solución de nube híbrida. ¿Cuál es el enfoque más apropiado?",
+    "imagen": "",
+    "opciones": [
+      "Migrar todo a Azure de una vez",
+      "Mantener todo en la nube privada",
+      "Migrar gradualmente manteniendo servicios locales críticos",
+      "Usar solo servicios SaaS en Azure"
+    ],
+    "correcta": 2
+  },
+  {
+    "pregunta": "¿Qué característica de Azure permite que las máquinas virtuales tengan alta disponibilidad?",
+    "imagen": "",
+    "opciones": [
+      "Zonas de disponibilidad",
+      "Solo regiones",
+      "Cuentas de almacenamiento",
+      "Grupos de recursos"
+    ],
+    "correcta": 0
+  },
+  {
+    "pregunta": "¿Cuál es una característica clave de la nube híbrida en términos de escalado de capacidad?",
+    "imagen": "",
+    "opciones": [
+      "Permite escalar solo localmente",
+      "Permite escalar recursos según demanda en entornos locales y nube",
+      "No permite escalado",
+      "Solo escala en regiones específicas"
+    ],
+    "correcta": 1
+  },
+  {
+    "pregunta": "¿Cuál es la categoría correcta para un servicio que proporciona una aplicación completa en la nube sin necesidad de gestionar infraestructura?",
+    "imagen": "",
+    "opciones": [
+      "IaaS",
+      "PaaS",
+      "SaaS",
+      "DaaS"
+    ],
+    "correcta": 2
+  },
+  {
+    "pregunta": "¿Qué servicio de Azure permite autenticar usuarios con Active Directory en entornos locales y nube?",
+    "imagen": "",
+    "opciones": [
+      "Azure Storage",
+      "Microsoft Entra ID Domain Services",
+      "Azure Virtual Network",
+      "Azure App Service"
+    ],
+    "correcta": 1
+  },
+  {
+    "pregunta": "¿En cuántas zonas de disponibilidad se pueden distribuir máquinas virtuales Windows y Linux en Azure?",
+    "imagen": "",
+    "opciones": [
+      "1 zona",
+      "2 zonas",
+      "3 zonas",
+      "Ilimitadas"
+    ],
+    "correcta": 2
+  },
+  {
+    "pregunta": "¿Los pares de regiones de Azure admiten replicación asincrónica de datos?",
+    "imagen": "",
+    "opciones": ["Sí", "No"],
+    "correcta": 0
+  },
+  {
+    "pregunta": "¿Cuál es el concepto de baja latencia en servicios en la nube?",
+    "imagen": "",
+    "opciones": [
+      "Tiempo de respuesta rápido entre cliente y servidor",
+      "Ancho de banda limitado",
+      "Alto costo de infraestructura",
+      "Seguridad de datos"
+    ],
+    "correcta": 0
+  },
+  {
+    "pregunta": "¿Qué significa escalabilidad dinámica en la nube?",
+    "imagen": "",
+    "opciones": [
+      "Aumentar recursos permanentemente",
+      "Ajustar recursos automáticamente según demanda",
+      "Reducir costos sin cambiar capacidad",
+      "Solo aplicable a bases de datos"
+    ],
+    "correcta": 1
+  },
+  {
+    "pregunta": "¿Cuál es el objetivo principal de la recuperación ante desastres?",
+    "imagen": "",
+    "opciones": [
+      "Prevenir todos los desastres",
+      "Restaurar servicios rápidamente después de una interrupción",
+      "Eliminar backups",
+      "Aumentar costos de infraestructura"
+    ],
+    "correcta": 1
+  },
+  {
+    "pregunta": "¿Qué característica garantiza que un servicio esté disponible la mayor parte del tiempo?",
+    "imagen": "",
+    "opciones": [
+      "Latencia baja",
+      "Alta disponibilidad",
+      "Escalabilidad",
+      "Redundancia local"
+    ],
+    "correcta": 1
+  },
+  {
+    "pregunta": "Para aislar completamente los recursos de red, ¿qué servicio de Azure se debe utilizar?",
+    "imagen": "",
+    "opciones": [
+      "Azure Load Balancer",
+      "Azure Virtual Network",
+      "Azure Application Gateway",
+      "Azure Traffic Manager"
+    ],
+    "correcta": 1
+  },
+  {
+    "pregunta": "¿Cuál es la función principal de Azure Application Gateway?",
+    "imagen": "",
+    "opciones": [
+      "Almacenar archivos",
+      "Enrutamiento y balanceo de carga HTTP/HTTPS",
+      "Ejecutar máquinas virtuales",
+      "Gestionar usuarios"
+    ],
+    "correcta": 1
+  },
+  {
+    "pregunta": "¿Cuál es el propósito principal de las cuentas de almacenamiento en Azure?",
+    "imagen": "",
+    "opciones": [
+      "Ejecutar aplicaciones",
+      "Almacenar objetos de datos accesibles vía HTTP",
+      "Gestionar máquinas virtuales",
+      "Autenticar usuarios"
+    ],
+    "correcta": 1
+  },
+  {
+    "pregunta": "Una empresa desea implementar Microsoft Entra ID Identity Protection. A continuación se detallan los requisitos clave:\n• Avisar a los usuarios si sus credenciales están comprometidas.\n• Identificar intentos de inicio de sesión sospechosos\n\n¿Cuál de las siguientes políticas implementa los requisitos anteriores?",
+    "imagen": "",
+    "opciones": [
+      "Política de riesgos del usuario",
+      "Política de Azure",
+      "Iniciar sesión en la política de riesgos",
+      "Política de registro del Ministerio de Asuntos Exteriores"
+    ],
+    "correcta": 2
+  },
+  {
+    "pregunta": "¿Cuál de las siguientes opciones satisface los tres necesidades más importantes a la hora de gestionar la seguridad de sus recursos y cargas de trabajo en la nube y en las instalaciones?\n\nTres necesidades vitales:\n• Evaluar\n• Seguro\n• Defender",
+    "imagen": "",
+    "opciones": [
+      "Cuentas de almacenamiento de Azure",
+      "Microsoft Defender para la nube",
+      "Microsoft Entra ID",
+      "Microsoft Sentinel"
+    ],
+    "correcta": 1
+  },
+  {
+    "pregunta": "Su organización necesita un nuevo modelo de seguridad para adaptarse eficazmente a la complejidad del entorno moderno; que integre la fuerza laboral móvil y proteja a las personas, los dispositivos, las aplicaciones y los datos dondequiera que se encuentren.\n\nDecidieron utilizar un modelo de defensa en profundidad. ¿cumplirá esto con el requisito?",
+    "imagen": "",
+    "opciones": ["Sí", "No"],
+    "correcta": 1
+  },
+  {
+    "pregunta": "Una empresa quiere empezar a usar Azure. Su objetivo es gestionar los servicios de datos en sus entornos locales, multinube y de software como servicio (SaaS). Decidieron usar Azure Policy. ¿Cumple con sus necesidades?",
+    "imagen": "",
+    "opciones": ["Sí", "No"],
+    "correcta": 1
+  }
+];
+    const claveAdministrador = "Admin123";
+    const imagenAprobado = "imagenes/aprobado.png";
+    const imagenReprobado = "imagenes/reprobado.png";
+    const notaMinimaAprobacion = 70;
+
+    let tiempoRestante = 2400;
+    let temporizador;
+    let clicsTitulo = 0;
+    let respuestasUsuario = [];
+
+    const formularioPreguntas = document.getElementById("formularioPreguntas");
+    const totalPreguntasSpan = document.getElementById("totalPreguntas");
+    const respondidasSpan = document.getElementById("respondidas");
+    const tiempoSpan = document.getElementById("tiempo");
+
+    const audioEvaluacion = document.getElementById("audioEvaluacion");
+    const audioAprobado = document.getElementById("audioAprobado");
+    const audioReprobado = document.getElementById("audioReprobado");
+
+    totalPreguntasSpan.textContent = preguntas.length;
+
+    function cargarPreguntas() {
+      formularioPreguntas.innerHTML = "";
+
+      preguntas.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "pregunta";
+
+        let opcionesHTML = "";
+        item.opciones.forEach((opcion, i) => {
+          opcionesHTML += `
+            <div class="opcion">
+              <label>
+                <input type="radio" name="pregunta${index}" value="${i}" onchange="actualizarProgreso()">
+                ${opcion}
+              </label>
+            </div>
+          `;
+        });
+
+        const imagenHTML = item.imagen
+          ? `<img src="${item.imagen}" alt="Imagen de la pregunta ${index + 1}" class="imagen-pregunta">`
+          : "";
+
+        div.innerHTML = `
+          <h3>${index + 1}. ${item.pregunta}</h3>
+          ${imagenHTML}
+          ${opcionesHTML}
+        `;
+
+        formularioPreguntas.appendChild(div);
+      });
+    }
+
+    function iniciarEvaluacion() {
+      const nombre = document.getElementById("nombre").value.trim();
+
+      if (nombre === "") {
+        alert("Por favor, escriba el nombre del estudiante.");
+        return;
+      }
+
+      tiempoRestante = 2400;
+      respuestasUsuario = [];
+      document.getElementById("adminPanel").style.display = "none";
+      document.getElementById("detalleRespuestas").innerHTML = "";
+
+      document.getElementById("pantallaInicial").classList.add("oculto");
+      document.getElementById("pantallaEvaluacion").classList.remove("oculto");
+      document.getElementById("resultado").style.display = "none";
+
+      cargarPreguntas();
+      actualizarProgreso();
+      actualizarTiempo();
+      iniciarTemporizador();
+
+      audioAprobado.pause();
+      audioReprobado.pause();
+      audioAprobado.currentTime = 0;
+      audioReprobado.currentTime = 0;
+
+      audioEvaluacion.volume = 0.3;
+      audioEvaluacion.play().catch(() => {});
+    }
+
+    function iniciarTemporizador() {
+      clearInterval(temporizador);
+
+      temporizador = setInterval(() => {
+        tiempoRestante--;
+        actualizarTiempo();
+
+        if (tiempoRestante <= 0) {
+          clearInterval(temporizador);
+          finalizarEvaluacion();
+        }
+      }, 1000);
+    }
+
+    function actualizarTiempo() {
+      const minutos = Math.floor(tiempoRestante / 60);
+      const segundos = tiempoRestante % 60;
+      tiempoSpan.textContent =
+        String(minutos).padStart(2, "0") + ":" + String(segundos).padStart(2, "0");
+    }
+
+    function actualizarProgreso() {
+      let respondidas = 0;
+
+      preguntas.forEach((_, index) => {
+        const respuesta = document.querySelector(`input[name="pregunta${index}"]:checked`);
+        if (respuesta) {
+          respondidas++;
+        }
+      });
+
+      respondidasSpan.textContent = respondidas;
+    }
+
+    function finalizarEvaluacion() {
+      clearInterval(temporizador);
+
+      let correctas = 0;
+      respuestasUsuario = [];
+
+      preguntas.forEach((item, index) => {
+        const respuesta = document.querySelector(`input[name="pregunta${index}"]:checked`);
+        const seleccionada = respuesta ? parseInt(respuesta.value) : null;
+
+        respuestasUsuario.push({
+          pregunta: item.pregunta,
+          seleccionada: seleccionada,
+          correcta: item.correcta,
+          opciones: item.opciones
+        });
+
+        if (seleccionada === item.correcta) {
+          correctas++;
+        }
+      });
+
+      const nota = Math.round((correctas / preguntas.length) * 100);
+      const aprobo = nota >= notaMinimaAprobacion;
+
+      document.getElementById("pantallaEvaluacion").classList.add("oculto");
+      document.getElementById("resultado").style.display = "block";
+      document.getElementById("resultado").className = aprobo ? "resultado aprobado" : "resultado reprobado";
+
+      document.getElementById("nombreMostrado").textContent = document.getElementById("nombre").value;
+      document.getElementById("notaFinal").textContent = nota + " / 100";
+      document.getElementById("mensajeFinal").textContent = aprobo ? "¡Aprobó la evaluación!" : "Reprobó la evaluación";
+      document.getElementById("imagenResultado").src = aprobo ? imagenAprobado : imagenReprobado;
+
+      audioEvaluacion.pause();
+      audioEvaluacion.currentTime = 0;
+
+      audioAprobado.pause();
+      audioReprobado.pause();
+      audioAprobado.currentTime = 0;
+      audioReprobado.currentTime = 0;
+
+      if (aprobo) {
+        audioAprobado.volume = 0.5;
+        audioAprobado.play().catch(() => {});
+      } else {
+        audioReprobado.volume = 0.5;
+        audioReprobado.play().catch(() => {});
+      }
+    }
+
+    document.getElementById("titulo").addEventListener("click", function () {
+      clicsTitulo++;
+
+      if (clicsTitulo === 5) {
+        clicsTitulo = 0;
+        const clave = prompt("Ingrese la clave de administrador:");
+
+        if (clave === claveAdministrador) {
+          mostrarPanelAdmin();
+        } else {
+          alert("Clave incorrecta.");
+        }
+      }
+    });
+
+    function mostrarPanelAdmin() {
+      if (respuestasUsuario.length === 0) {
+        alert("Todavía no hay resultados para mostrar.");
+        return;
+      }
+
+      const panel = document.getElementById("adminPanel");
+      const detalle = document.getElementById("detalleRespuestas");
+
+      detalle.innerHTML = "";
+
+      respuestasUsuario.forEach((item) => {
+        const esCorrecta = item.seleccionada === item.correcta;
+
+        const textoSeleccionada = item.seleccionada !== null
+          ? item.opciones[item.seleccionada]
+          : "No respondió";
+
+        const textoCorrecta = item.opciones[item.correcta];
+
+        const div = document.createElement("div");
+        div.className = "detalle-item";
+        div.innerHTML = `
+          <p><strong>${item.pregunta}</strong></p>
+          <p>Respondió: <span class="${esCorrecta ? 'correcta' : 'incorrecta'}">${textoSeleccionada}</span></p>
+          <p>Correcta: <span class="correcta">${textoCorrecta}</span></p>
+        `;
+
+        detalle.appendChild(div);
+      });
+
+      panel.style.display = "block";
+      panel.scrollIntoView({ behavior: "smooth" });
+    }
+  </script>
+</body>
+</html>
